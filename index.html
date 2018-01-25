@@ -1,40 +1,104 @@
 <html>
   <head>
+    <!--Load the AJAX API-->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
+
+      // Load the Visualization API and the corechart package.
       google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawSeriesChart);
 
-    function drawSeriesChart() {
+      // Set a callback to run when the Google Visualization API is loaded.
+      google.charts.setOnLoadCallback(function() { drawChart('Q', 'E'); });
+    </script>
+    <script type="text/javascript">
 
-      var data = google.visualization.arrayToDataTable([
-        ['ID', 'Life Expectancy', 'Fertility Rate', 'Region',     'Population'],
-        ['CAN',    80.66,              1.67,      'North America',  33739900],
-        ['DEU',    79.84,              1.36,      'Europe',         81902307],
-        ['DNK',    78.6,               1.84,      'Europe',         5523095],
-        ['EGY',    72.73,              2.78,      'Middle East',    79716203],
-        ['GBR',    80.05,              2,         'Europe',         61801570],
-        ['IRN',    72.49,              1.7,       'Middle East',    73137148],
-        ['IRQ',    68.09,              4.77,      'Middle East',    31090763],
-        ['ISR',    81.55,              2.96,      'Middle East',    7485600],
-        ['RUS',    68.6,               1.54,      'Europe',         141850000],
-        ['USA',    78.09,              2.05,      'North America',  307007000]
-      ]);
+      current_x = '';
+      current_y = '';
+      // Callback that creates and populates a data table,
+      // instantiates the pie chart, passes in the data and
+      // draws it.
 
-      var options = {
-        title: 'Correlation between life expectancy, fertility rate ' +
-               'and population of some world countries (2010)',
-        hAxis: {title: 'Life Expectancy'},
-        vAxis: {title: 'Fertility Rate'},
-        bubble: {textStyle: {fontSize: 11}}
-      };
+      function drawChart(x_value, y_value) {
+          current_x = x_value;
+          current_y = y_value;
+          var opts = '&gid=0&numers=1';
+          var url = 'https://docs.google.com/spreadsheets/d/1y6t7rlTMO3W020Boibd52KUHdddwExhSqYI8aiIDcvw/edit?usp=sharing';
+          var query = new google.visualization.Query(url+opts);
+          var select_query = "SELECT A,"+x_value+","+y_value+",B"
+          query.setQuery(select_query);
+          query.send(function (response) {
+              if (response.isError()) {
+                  alert('Error in query: ' + response.getMessage() + ' ' + response.getDetailedMessage());
+                  return;
+              }
 
-      var chart = new google.visualization.BubbleChart(document.getElementById('series_chart_div'));
-      chart.draw(data, options);
-    }
+              var data = response.getDataTable();
+
+              var chart = new google.visualization.BubbleChart(document.querySelector('#chart_div'));
+
+              var options = {
+                title: 'Correlation between life expectancy, fertility rate ' +
+                       'and population of some world countries (2010)',
+                hAxis: {title: data.getColumnLabel(1)},
+                vAxis: {title: data.getColumnLabel(2)},
+                bubble: {textStyle: {fontSize: 11}}
+              };
+
+              chart.draw(data, options);
+          });
+      }
+      // google.charts.load('visualization', '1', {packages:['corechart'], callback: drawChart});
+
+      function changeX(x) {
+        drawChart(x, current_y);
+      }
+
+      function changeY(y) {
+        drawChart(current_x, y);
+      }
+
     </script>
   </head>
+
   <body>
-    <div id="series_chart_div" style="width: 900px; height: 500px;"></div>
+    <!--Div that will hold the pie chart-->
+    <div id="chart_div" style="width: 1000px; height: 800px;"></div>
+    <!--Change x-axis-->
+    <h4>Change x-axis skill</h4>
+    <select name="numbers" onchange="changeX(this.value)">
+      <option value="current_x">Please select x-axis skills</option>
+      <option value='E'>Visualization</option>
+      <option value='F'>Statistics</option>
+      <option value='G'>Mathematical</option>
+      <option value='H'>Drawing and artistic</option>
+      <option value='I'>Computer usage</option>
+      <option value='J'>Programming</option>
+      <option value='K'>Graphics programming</option>
+      <option value='L'>Human-computer interaction programming</option>
+      <option value='M'>User experience evaluation</option>
+      <option value='N'>Communication</option>
+      <option value='O'>Collaboration</option>
+      <option value='P'>Code repository</option>
+      <option value='Q'>Sum of all skills</option>
+    </select>
+    <!--Change x-axis-->
+    <h4>Change y-axis skill</h4>
+    <select name="numbers" onchange="changeY(this.value)">
+      <option value="">Please select y-axis skills</option>
+      <option value='E'>Visualization</option>
+      <option value='F'>Statistics</option>
+      <option value='G'>Mathematical</option>
+      <option value='H'>Drawing and artistic</option>
+      <option value='I'>Computer usage</option>
+      <option value='J'>Programming</option>
+      <option value='K'>Graphics programming</option>
+      <option value='L'>Human-computer interaction programming</option>
+      <option value='M'>User experience evaluation</option>
+      <option value='N'>Communication</option>
+      <option value='O'>Collaboration</option>
+      <option value='P'>Code repository</option>
+      <option value='Q'>Sum of all skills</option>
+  </select>
+
   </body>
 </html>
