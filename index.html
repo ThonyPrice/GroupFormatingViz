@@ -79,7 +79,6 @@
       }
       function onoff(val) {
         var condition = 'WHERE ';
-        var hobbies = [games, programming, music, art, movies, sports];
         var str_hobbies = ['R', 'S', 'T', 'U', 'V', 'W'];
         if (val == 'games') {
           games = 1 - games;
@@ -94,9 +93,12 @@
         } if (val == 'sports') {
           sports = 1 - sports;
         }
+        var hobbies = [games, programming, music, art, movies, sports];
         var sum = games + programming + music + art + movies + sports;
+        console.log(sum);
         var count = 0;
         for (var i = 0; i<6; i++) {
+          console.log(str_hobbies[i] + ' ' + hobbies[i]);
           if (hobbies[i] == 1) {
             count = count + 1;
             if (count == sum) {
@@ -106,7 +108,11 @@
             }
           }
         }
-        filter = condition;
+        if (sum == 0) {
+          filter = '';
+        } else {
+          filter = condition;
+        }
         console.log(filter)
         // filter = 'WHERE R = ' + games +
         //   ' AND S = ' + programming +
