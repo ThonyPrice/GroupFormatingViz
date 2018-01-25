@@ -1,22 +1,28 @@
 <html>
   <head>
+    <link rel="stylesheet" type="text/css" href="style.css">
     <!--Load the AJAX API-->
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
 
+    <script type="text/javascript">
       // Load the Visualization API and the corechart package.
       google.charts.load('current', {'packages':['corechart']});
-
       // Set a callback to run when the Google Visualization API is loaded.
       google.charts.setOnLoadCallback(function() { drawChart('Q', 'E'); });
     </script>
+
     <script type="text/javascript">
 
       current_x = '';
       current_y = '';
-      // Callback that creates and populates a data table,
-      // instantiates the pie chart, passes in the data and
-      // draws it.
+      current_group = '1';
+      games = 0;
+      programming = 0;
+      music = 0;
+      art = 0;
+      movies = 0;
+      sports = 0;
+      filter = ''
 
       function drawChart(x_value, y_value) {
           current_x = x_value;
@@ -24,7 +30,7 @@
           var opts = '&gid=0&numers=1';
           var url = 'https://docs.google.com/spreadsheets/d/1y6t7rlTMO3W020Boibd52KUHdddwExhSqYI8aiIDcvw/edit?usp=sharing';
           var query = new google.visualization.Query(url+opts);
-          var select_query = "SELECT A,"+x_value+","+y_value+",B"
+          var select_query = "SELECT A,"+x_value+","+y_value+",B " + filter
           query.setQuery(select_query);
           query.send(function (response) {
               if (response.isError()) {
@@ -32,73 +38,215 @@
                   return;
               }
 
-              var data = response.getDataTable();
+              var dataTable = response.getDataTable();
 
               var chart = new google.visualization.BubbleChart(document.querySelector('#chart_div'));
 
               var options = {
-                title: 'Correlation between life expectancy, fertility rate ' +
-                       'and population of some world countries (2010)',
-                hAxis: {title: data.getColumnLabel(1)},
-                vAxis: {title: data.getColumnLabel(2)},
-                bubble: {textStyle: {fontSize: 11}}
+                title: 'Students skills and majors',
+                hAxis: {title: dataTable.getColumnLabel(1)},
+                vAxis: {title: dataTable.getColumnLabel(2)},
+                bubble: {textStyle: {fontSize: 11}},
+                animation:{
+                  duration: 10000,
+                  easing: 'out',
+                },
+                explorer: {}
               };
+              chart.draw(dataTable, options);
 
-              chart.draw(data, options);
+              function selectHandler(e) {
+                var selectedItem = chart.getSelection()[0];
+                if (selectedItem) {
+                  var value = dataTable.getValue(selectedItem.row, 0);
+                  alert('You added ' + value + ' to group ' + current_group);
+                  var groupId = 'group' + current_group;
+                  var div = document.getElementById(groupId);
+                  div.innerHTML += value + ' * ';
+                }
+              }
+              google.visualization.events.addListener(chart, 'select', selectHandler);
           });
       }
-      // google.charts.load('visualization', '1', {packages:['corechart'], callback: drawChart});
-
       function changeX(x) {
         drawChart(x, current_y);
       }
-
       function changeY(y) {
         drawChart(current_x, y);
+      }
+      function setGroup(x) {
+        current_group = x;
+      }
+      function onoff(val) {
+        var condition = 'WHERE ';
+        var hobbies = [games, programming, music, art, movies, sports];
+        var str_hobbies = ['R', 'S', 'T', 'U', 'V', 'W'];
+        if (val == 'games') {
+          games = 1 - games;
+        } if (val == 'programming') {
+          programming = 1 - programming;
+        } if (val == 'music') {
+          music = 1 - music;
+        } if (val == 'art') {
+          art = 1 - art;
+        } if (val == 'movies') {
+          movies = 1 - movies;
+        } if (val == 'sports') {
+          sports = 1 - sports;
+        }
+        var sum = games + programming + music + art + movies + sports;
+        var count = 0;
+        for (var i = 0; i<6; i++) {
+          if (hobbies[i] == 1) {
+            count = count + 1;
+            if (count == sum) {
+              condition = condition + str_hobbies[i] + ' = 1 ';
+            } else {
+              condition = condition + str_hobbies[i] + ' = 1 AND ';
+            }
+          }
+        }
+        filter = condition;
+        console.log(filter)
+        // filter = 'WHERE R = ' + games +
+        //   ' AND S = ' + programming +
+        //   ' AND T = ' +  music +
+        //   ' AND U = ' + art +
+        //   ' AND V = ' + movies +
+        //   ' AND W = ' + sports
+        drawChart(current_x, current_y);
       }
 
     </script>
   </head>
 
   <body>
+    <div id="header">
+      <h2>Visualize Student Group Formation based on Individual Skills and Interests</h2>
+    </div>
     <!--Div that will hold the pie chart-->
-    <div id="chart_div" style="width: 1000px; height: 800px;"></div>
+    <div id="chart_div" style="width: 1000px; height: 600px;"></div>
     <!--Change x-axis-->
-    <h4>Change x-axis skill</h4>
-    <select name="numbers" onchange="changeX(this.value)">
-      <option value="current_x">Please select x-axis skills</option>
-      <option value='E'>Visualization</option>
-      <option value='F'>Statistics</option>
-      <option value='G'>Mathematical</option>
-      <option value='H'>Drawing and artistic</option>
-      <option value='I'>Computer usage</option>
-      <option value='J'>Programming</option>
-      <option value='K'>Graphics programming</option>
-      <option value='L'>Human-computer interaction programming</option>
-      <option value='M'>User experience evaluation</option>
-      <option value='N'>Communication</option>
-      <option value='O'>Collaboration</option>
-      <option value='P'>Code repository</option>
-      <option value='Q'>Sum of all skills</option>
-    </select>
-    <!--Change x-axis-->
-    <h4>Change y-axis skill</h4>
-    <select name="numbers" onchange="changeY(this.value)">
-      <option value="">Please select y-axis skills</option>
-      <option value='E'>Visualization</option>
-      <option value='F'>Statistics</option>
-      <option value='G'>Mathematical</option>
-      <option value='H'>Drawing and artistic</option>
-      <option value='I'>Computer usage</option>
-      <option value='J'>Programming</option>
-      <option value='K'>Graphics programming</option>
-      <option value='L'>Human-computer interaction programming</option>
-      <option value='M'>User experience evaluation</option>
-      <option value='N'>Communication</option>
-      <option value='O'>Collaboration</option>
-      <option value='P'>Code repository</option>
-      <option value='Q'>Sum of all skills</option>
-  </select>
-
+    <div id="select-x-axis" style="display:inline-block;margin-right:10px";>
+      <h4>Change x-axis skill</h4>
+      <select name="numbers" onchange="changeX(this.value)">
+        <option value="current_x">Please select x-axis skills</option>
+        <option value='E'>Visualization</option>
+        <option value='F'>Statistics</option>
+        <option value='G'>Mathematical</option>
+        <option value='H'>Drawing and artistic</option>
+        <option value='I'>Computer usage</option>
+        <option value='J'>Programming</option>
+        <option value='K'>Graphics programming</option>
+        <option value='L'>Human-computer interaction programming</option>
+        <option value='M'>User experience evaluation</option>
+        <option value='N'>Communication</option>
+        <option value='O'>Collaboration</option>
+        <option value='P'>Code repository</option>
+        <option value='Q'>Sum of all skills</option>
+      </select>
+    </div>
+    <div id="select-y-axis" style="display:inline-block;margin-right:10px";>
+    <!--Change y-axis-->
+      <h4>Change y-axis skill</h4>
+      <select name="numbers" onchange="changeY(this.value)">
+        <option value="">Please select y-axis skills</option>
+        <option value='E'>Visualization</option>
+        <option value='F'>Statistics</option>
+        <option value='G'>Mathematical</option>
+        <option value='H'>Drawing and artistic</option>
+        <option value='I'>Computer usage</option>
+        <option value='J'>Programming</option>
+        <option value='K'>Graphics programming</option>
+        <option value='L'>Human-computer interaction programming</option>
+        <option value='M'>User experience evaluation</option>
+        <option value='N'>Communication</option>
+        <option value='O'>Collaboration</option>
+        <option value='P'>Code repository</option>
+        <option value='Q'>Sum of all skills</option>
+      </select>
+    </div>
+    <div style="display:inline-block;">
+    <!--Select group-->
+      <h4>Select group to add student in</h4>
+      <select name="numbers" onchange="setGroup(this.value)">
+        <option value='1'>1</option>
+        <option value='2'>2</option>
+        <option value='3'>3</option>
+        <option value='4'>4</option>
+        <option value='5'>5</option>
+        <option value='6'>6</option>
+        <option value='7'>7</option>
+        <option value='8'>8</option>
+        <option value='9'>9</option>
+        <option value='10'>10</option>
+      </select>
+    </div>
+    <div id="filter">
+      <h5>Filter on interests:</h5>
+      Games:
+      <label class="switch" style="display:inline-block;margin-right:8px">
+        <input type="checkbox" onclick="onoff('games')">
+        <span class="slider"></span>
+      </label>
+      Programming:
+      <label class="switch" style="display:inline-block;margin-right:8px">
+        <input type="checkbox" onclick="onoff('programming')">
+        <span class="slider"></span>
+      </label>
+      Music:
+      <label class="switch" style="display:inline-block;margin-right:8px">
+        <input type="checkbox" onclick="onoff('music')">
+        <span class="slider"></span>
+      </label>
+      Art/Design:
+      <label class="switch" style="display:inline-block;margin-right:8px">
+        <input type="checkbox" onclick="onoff('art')">
+        <span class="slider"></span>
+      </label>
+      Movies:
+      <label class="switch" style="display:inline-block;margin-right:8px">
+        <input type="checkbox" onclick="onoff('movies')">
+        <span class="slider"></span>
+      </label>
+      Sports:
+      <label class="switch" style="display:inline-block;">
+        <input type="checkbox" onclick="onoff('sports')">
+        <span class="slider"></span>
+      </label>
+    </div>
+  <br><br>
+  <div class="all-groups">
+    <div class="groups" id="group1">
+      <b>Group 1: </b>
+    </div>
+    <div class="groups" id="group2">
+      <b>Group 2: </b>
+    </div>
+    <div class="groups" id="group3">
+      <b>Group 3: </b>
+    </div>
+    <div class="groups" id="group4">
+      <b>Group 4: </b>
+    </div>
+    <div class="groups" id="group5">
+      <b>Group 5: </b>
+    </div>
+    <div class="groups" id="group6">
+      <b>Group 6: </b>
+    </div>
+    <div class="groups" id="group7">
+      <b>Group 7: </b>
+    </div>
+    <div class="groups" id="group8">
+      <b>Group 8: </b>
+    </div>
+    <div class="groups" id="group9">
+      <b>Group 9: </b>
+    </div>
+    <div class="groups" id="group10">
+      <b>Group 10: </b>
+    </div>
+  </div>
   </body>
 </html>
